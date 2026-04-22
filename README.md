@@ -27,14 +27,16 @@ This project aims to detect fraudulent transactions using supervised machine lea
 ---
 
 ## 🗂️ Dataset
-- Dataset: Credit Card Fraud Detection
-- Features:
-  - `V1 - V28` (PCA transformed features)
-  - `Amount`
-  - `Time`
-- Target:
-  - `Class` (0 = Normal, 1 = Fraud)
+The dataset used in this project is publicly available on Kaggle:
 
+🔗 https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+
+**Description:**
+- Contains anonymized credit card transactions
+- Features `V1 - V28` are PCA-transformed for privacy
+- Includes `Time` and `Amount`
+- Target variable:
+  - `Class` (0 = Normal, 1 = Fraud)
 ---
 
 ## 🔧 Installation & Run Locally
