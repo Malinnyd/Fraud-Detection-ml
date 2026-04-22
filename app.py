@@ -26,16 +26,21 @@ model = load_model()
 # =========================
 def preprocess(df):
     df = df.copy()
-    
-    # Feature Engineering (HARUS sama dengan training)
+
+    # Hapus kolom hasil prediksi jika ada
+    df = df.drop(columns=['fraud_prob', 'prediction'], errors='ignore')
+
+    # Feature Engineering (opsional - sesuai training kamu)
     if 'Time' in df.columns:
         df['hour'] = (df['Time'] // 3600) % 24
+        df['day'] = df['Time'] // (3600 * 24)
+
+    df = df.drop(columns=['Time'], errors='ignore')
+
     if 'Amount' in df.columns:
         df['Amount_log'] = np.log1p(df['Amount'])
-    
-    # Drop original
-    df = df.drop(columns=['Time', 'Amount'], errors='ignore')
-    
+        df = df.drop(columns=['Amount'], errors='ignore')
+
     return df
 
 # =========================
@@ -49,15 +54,18 @@ top_n = st.sidebar.slider("Top N Fraud", 5, 50, 10)
 st.sidebar.write("Model:", type(model).__name__)
 
 # =========================
-# LOAD DATA
+# UPLOAD DATA
 # =========================
-uploaded_file = st.file_uploader("Upload dataset (CSV)", type=["csv"])
+st.subheader("📤 Upload Dataset")
 
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-else:
-    st.info("Menggunakan sample data")
-    df = pd.read_csv("creditcard.csv").sample(5000, random_state=42)
+uploaded_file = st.file_uploader("Upload dataset CSV", type=["csv"])
+
+if uploaded_file is None:
+    st.warning("Silakan upload dataset dari Kaggle terlebih dahulu")
+    st.markdown("🔗 https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud")
+    st.stop()
+
+df = pd.read_csv(uploaded_file)
 
 st.subheader("📄 Data Preview")
 st.dataframe(df.head())
@@ -74,12 +82,10 @@ X = df_clean.drop(columns=['Class'], errors='ignore')
 # =========================
 expected_features = model.feature_names_in_
 
-# Tambahkan kolom yang hilang
 missing_cols = set(expected_features) - set(X.columns)
 for col in missing_cols:
     X[col] = 0
 
-# Pastikan urutan sama
 X = X[expected_features]
 
 # =========================
@@ -134,7 +140,6 @@ if hasattr(model, "feature_importances_"):
     importance = model.feature_importances_
     features = expected_features
 
-    # ambil top 10 biar rapi
     idx = np.argsort(importance)[-10:]
 
     fig, ax = plt.subplots()
@@ -151,7 +156,7 @@ st.subheader("🧠 Insight")
 st.write("""
 - Transaksi dengan probabilitas tinggi perlu investigasi lebih lanjut
 - Model membantu mendeteksi pola fraud secara otomatis
-- Threshold dapat diatur sesuai toleransi risiko bisnis
+- Threshold dapat disesuaikan sesuai toleransi risiko bisnis
 """)
 
 # =========================
